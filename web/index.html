@@ -36,6 +36,55 @@
       <div class="abas" role="tablist">
         <button class="aba ativa" data-aba="3d" role="tab">Vista 3D</button>
         <button class="aba" data-aba="camera" role="tab">Câmera + detecção</button>
+        <button class="aba" data-aba="fluxo" role="tab">Funcionamento do sistema</button>
+      </div>
+
+      <div id="painelFluxo" hidden>
+        <div class="fluxo" id="fluxo">
+          <section class="etapa">
+            <header><span class="num">1</span><div>Coleta<small>Sensor em cada vaga lê se há carro</small></div></header>
+            <div class="sensores" id="sensores"></div>
+          </section>
+          <section class="etapa">
+            <header><span class="num">2</span><div>Transmissão<small>Gateway recebe e enfileira</small></div></header>
+            <div class="alvo gateway" id="alvoGateway"><span class="icone">📡</span>Gateway</div>
+            <div class="rotulo-fila">Fila de espera: <b id="qtdFila">0</b></div>
+            <ol class="fila" id="fila"></ol>
+          </section>
+          <section class="etapa">
+            <header><span class="num">3</span><div>Processamento<small>Servidor valida e grava o status</small></div></header>
+            <div class="alvo servidor" id="alvoServidor"><span class="icone">🖥️</span>Servidor</div>
+            <div class="cpu" id="cpu">Ocioso</div>
+            <div class="progresso"><i id="progresso"></i></div>
+            <div class="rotulo-fila">Processadas: <b id="qtdProc">0</b></div>
+          </section>
+          <section class="etapa">
+            <header><span class="num">4</span><div>Atualização<small>App mostra o novo status</small></div></header>
+            <div class="celular">
+              <div class="app-topo">Vagas livres <b id="appLivres">–</b></div>
+              <div class="app-vagas" id="appVagas"></div>
+            </div>
+          </section>
+          <div class="camada-pacotes" id="pacotes"></div>
+        </div>
+
+        <div class="legenda-fluxo">
+          <span><i class="pk ocupada"></i>mudança → ocupada</span>
+          <span><i class="pk livre"></i>mudança → livre</span>
+          <span><i class="pk status"></i>status periódico (sem mudança)</span>
+          <span>Cada mensagem leva a <b>identificação do sensor</b> e o <b>horário em que foi emitida</b>.</span>
+        </div>
+
+        <h2 class="titulo-log">Registro de mensagens</h2>
+        <div class="tabela-wrap">
+          <table class="log-msgs">
+            <thead><tr>
+              <th>Msg</th><th>Sensor</th><th>Vaga</th><th>Leitura</th><th>Tipo</th>
+              <th>1 · Emitida</th><th>2 · No gateway</th><th>3 · Processada</th><th>4 · No app</th><th>Latência</th>
+            </tr></thead>
+            <tbody id="logMsgs"><tr><td colspan="10" class="ajuda">Aguardando mensagens…</td></tr></tbody>
+          </table>
+        </div>
       </div>
 
       <div id="painel3d" class="palco">
@@ -90,6 +139,7 @@
 } }
 </script>
 <script src="app.js"></script>
+<script src="fluxo.js"></script>
 <script type="module" src="vista3d.js"></script>
 </body>
 </html>

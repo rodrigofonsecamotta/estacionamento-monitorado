@@ -460,12 +460,14 @@ function mostrarAba(aba) {
   document.querySelectorAll(".aba").forEach((b) => b.classList.toggle("ativa", b.dataset.aba === aba));
   $("painel3d").hidden = aba !== "3d";
   $("painelCamera").hidden = aba !== "camera";
+  $("painelFluxo").hidden = aba !== "fluxo";
 }
 document.querySelectorAll(".aba").forEach((b) => (b.onclick = () => mostrarAba(b.dataset.aba)));
 
 // Estado lido pela vista 3D (vista3d.js) a cada quadro
 window.estacionamento = {
   estado: () => ({ vagas, estados, largura: tela.width, altura: tela.height, fonte, pausado }),
+  tempo: () => relogio(), // relógio que para durante a pausa
   corDoCarro: (id) => {
     if (fonte !== "sim") return null;
     const c = carrosSim.find((c) => c.id === id);

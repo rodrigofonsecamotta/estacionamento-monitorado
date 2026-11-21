@@ -93,3 +93,86 @@ button, select { box-shadow: 0 1px 0 rgba(15,23,42,.06), inset 0 -1px 0 rgba(15,
   position: absolute; top: .75rem; right: .75rem; padding: .45rem .8rem; border-radius: 10px;
   background: rgba(245,158,11,.9); color: #111; font-weight: 700; pointer-events: none;
 }
+
+/* ---------- Aba "Funcionamento do sistema" ---------- */
+.fluxo {
+  position: relative; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2.4rem;
+  padding: 1.1rem; border-radius: 12px; background: #0b1220; color: #e2e8f0; min-height: 430px;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.06), 0 20px 40px -18px rgba(2,6,23,.6);
+}
+.etapa { position: relative; display: flex; flex-direction: column; gap: .6rem; min-width: 0;
+  background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: .75rem; }
+.etapa:not(:nth-of-type(4))::after {
+  content: "➜"; position: absolute; right: -1.85rem; top: 50%; transform: translateY(-50%);
+  color: #64748b; font-size: 1.3rem;
+}
+.etapa header { display: flex; gap: .55rem; align-items: center; font-weight: 700; }
+.etapa header small { display: block; font-weight: 400; color: #94a3b8; font-size: .75rem; }
+.num { display: grid; place-items: center; width: 1.7rem; height: 1.7rem; flex: none; border-radius: 50%;
+  background: var(--acento); color: #fff; font-size: .9rem; box-shadow: 0 0 0 4px rgba(37,99,235,.25); }
+
+.sensores { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: .35rem; }
+.sensor { display: flex; align-items: center; gap: .35rem; padding: .3rem .4rem; border-radius: 6px;
+  background: rgba(255,255,255,.06); font-size: .7rem; white-space: nowrap; }
+.sensor .led { width: .55rem; height: .55rem; border-radius: 50%; background: #64748b; flex: none; }
+.sensor.livre .led { background: #22c55e; box-shadow: 0 0 6px #22c55e; }
+.sensor.ocupada .led { background: #ef4444; box-shadow: 0 0 6px #ef4444; }
+.sensor.emitindo { animation: emitir .7s ease-out; }
+@keyframes emitir { 0% { box-shadow: 0 0 0 0 rgba(96,165,250,.9); } 100% { box-shadow: 0 0 0 10px rgba(96,165,250,0); } }
+
+.alvo { display: flex; align-items: center; justify-content: center; gap: .45rem; padding: .7rem; border-radius: 10px;
+  background: linear-gradient(180deg, #1e293b, #0f172a); border: 1px solid #334155; font-weight: 700; }
+.alvo .icone { font-size: 1.4rem; }
+.rotulo-fila { font-size: .78rem; color: #94a3b8; }
+.rotulo-fila b { color: #e2e8f0; }
+.fila { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .25rem; }
+.fila li { font-size: .7rem; padding: .3rem .45rem; border-radius: 6px; background: rgba(255,255,255,.06);
+  border-left: 3px solid #64748b; animation: entrar .3s ease-out; }
+.fila li span { color: #94a3b8; }
+.fila li.ocupada { border-left-color: #ef4444; }
+.fila li.livre { border-left-color: #22c55e; }
+.fila li.mais, .fila li.vazio { border-left-color: transparent; color: #64748b; text-align: center; }
+@keyframes entrar { from { opacity: 0; transform: translateY(-4px); } }
+
+.cpu { font-size: .78rem; padding: .55rem; border-radius: 8px; background: rgba(255,255,255,.05); min-height: 3.2rem; color: #94a3b8; }
+.cpu.ativo { color: #e2e8f0; background: rgba(37,99,235,.18); }
+.progresso { height: 6px; border-radius: 99px; background: rgba(255,255,255,.08); overflow: hidden; }
+.progresso i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #3b82f6, #22d3ee); }
+
+.celular { margin: 0 auto; width: 100%; max-width: 190px; padding: .7rem .55rem 1.1rem; border-radius: 22px;
+  background: #f8fafc; color: #0f172a; border: 6px solid #1e293b; box-shadow: 0 10px 24px -8px rgba(0,0,0,.6); }
+.app-topo { font-size: .75rem; text-align: center; margin-bottom: .45rem; color: #475569; }
+.app-topo b { display: block; font-size: 1.2rem; color: #16a34a; }
+.app-vagas { display: grid; grid-template-columns: repeat(4, 1fr); gap: .25rem; }
+.app-vaga { font-size: .6rem; font-weight: 700; text-align: center; padding: .35rem 0; border-radius: 5px; background: #e2e8f0; color: #64748b; }
+.app-vaga.livre { background: #dcfce7; color: #15803d; }
+.app-vaga.ocupada { background: #fee2e2; color: #b91c1c; }
+.app-vaga.piscar { animation: piscar .8s ease-out; }
+@keyframes piscar { 0% { box-shadow: 0 0 0 0 rgba(37,99,235,.8); transform: scale(1.15); } 100% { box-shadow: 0 0 0 8px rgba(37,99,235,0); transform: scale(1); } }
+
+.camada-pacotes { position: absolute; inset: 0; pointer-events: none; overflow: hidden; border-radius: 12px; }
+.pacote { position: absolute; left: 0; top: 0; visibility: hidden; display: flex; flex-direction: column; line-height: 1.15;
+  padding: .2rem .45rem; border-radius: 6px; font-size: .64rem; white-space: nowrap; color: #0f172a; background: #f8fafc;
+  border-left: 4px solid #94a3b8; box-shadow: 0 4px 12px rgba(0,0,0,.45); z-index: 2; }
+.pacote span { color: #475569; font-variant-numeric: tabular-nums; }
+.pacote.ocupada { border-left-color: #ef4444; }
+.pacote.livre { border-left-color: #22c55e; }
+
+.legenda-fluxo { display: flex; flex-wrap: wrap; gap: .4rem 1.2rem; margin: .8rem 0; font-size: .82rem; color: var(--suave); }
+.pk { display: inline-block; width: .8rem; height: .8rem; border-radius: 3px; margin-right: .3rem; vertical-align: -1px; background: #94a3b8; }
+.pk.ocupada { background: #ef4444; }
+.pk.livre { background: #22c55e; }
+.titulo-log { margin-top: 1rem; }
+.tabela-wrap { overflow-x: auto; max-height: 320px; overflow-y: auto; border: 1px solid var(--borda); border-radius: 8px; }
+.log-msgs { width: 100%; border-collapse: collapse; font-size: .8rem; white-space: nowrap; }
+.log-msgs th { position: sticky; top: 0; background: #f1f5f9; text-align: left; padding: .45rem .6rem; font-weight: 600; }
+.log-msgs td { padding: .35rem .6rem; border-top: 1px solid var(--borda); font-variant-numeric: tabular-nums; }
+.log-msgs td.pend { color: #cbd5e1; }
+.tag-leitura { font-size: .72rem; font-weight: 600; padding: .05rem .4rem; border-radius: 99px; }
+.tag-leitura.ocupada { background: var(--ocupada-bg); color: var(--ocupada); }
+.tag-leitura.livre { background: var(--livre-bg); color: var(--livre); }
+
+@media (max-width: 760px) {
+  .fluxo { grid-template-columns: 1fr; gap: 2rem; }
+  .etapa:not(:nth-of-type(4))::after { content: "⬇"; right: auto; left: 50%; top: auto; bottom: -1.75rem; transform: translateX(-50%); }
+}
