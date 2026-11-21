@@ -13,8 +13,8 @@
     viagemGatewayServidor: 800,
     processamento: 900,
     viagemServidorApp: 800,
-    statusMin: 14000, // intervalo do "status periódico" de cada sensor
-    statusMax: 26000,
+    statusMin: 90000, // intervalo do "status periódico" de cada sensor
+    statusMax: 150000,
     maxLog: 60,
     maxFilaVisivel: 8,
   };

@@ -81,14 +81,16 @@ function vagasPadraoSim() {
   }));
 }
 
+const INTERVALO_MUDANCA_MS = 30000; // uma vaga muda (carro entra ou sai) a cada 30 s
+let proximaMudanca = 0;
+
 function iniciarSim() {
   fundoSim = fundoSim || criarFundoSim();
   if (carrosSim.length) return;
-  const agora = relogio();
   for (const r of retangulosSim()) {
-    const ocupado = Math.random() < 0.5;
-    carrosSim.push({ ...r, ocupado, cor: CORES[(Math.random() * CORES.length) | 0], prox: agora + rnd(2000, 15000) });
+    carrosSim.push({ ...r, ocupado: Math.random() < 0.5, cor: CORES[(Math.random() * CORES.length) | 0] });
   }
+  proximaMudanca = relogio() + INTERVALO_MUDANCA_MS;
 }
 
 function desenharCarro(g, x1, y1, x2, y2, cor) {
@@ -110,12 +112,13 @@ function desenharCarro(g, x1, y1, x2, y2, cor) {
 function desenharSim() {
   const agora = relogio();
   ctx.drawImage(fundoSim, 0, 0);
+  if (agora >= proximaMudanca) {
+    const c = carrosSim[(Math.random() * carrosSim.length) | 0];
+    c.ocupado = !c.ocupado;
+    if (c.ocupado) c.cor = CORES[(Math.random() * CORES.length) | 0];
+    proximaMudanca = agora + INTERVALO_MUDANCA_MS;
+  }
   for (const c of carrosSim) {
-    if (agora >= c.prox) {
-      c.ocupado = !c.ocupado;
-      if (c.ocupado) c.cor = CORES[(Math.random() * CORES.length) | 0];
-      c.prox = agora + (c.ocupado ? rnd(8000, 30000) : rnd(4000, 15000));
-    }
     if (c.ocupado) desenharCarro(ctx, c.x1, c.y1, c.x2, c.y2, c.cor);
   }
   // variação leve de iluminação, como numa câmera real
