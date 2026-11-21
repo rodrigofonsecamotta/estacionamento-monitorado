@@ -19,7 +19,6 @@ let mascaras = [];   // Int32Array de índices de pixel por vaga
 let formato = "";
 let editando = false;
 let pontos = [];
-let eventos = [];
 let streamWebcam = null;
 let ultimoPainel = 0;
 
@@ -238,9 +237,6 @@ function processar(bin) {
     if (e.cand === leitura) e.cont++; else { e.cand = leitura; e.cont = 1; }
     if (e.cont >= CFG.framesConfirmacao) {
       e.ocupada = leitura; e.desde = agora; e.cand = null; e.cont = 0;
-      eventos.unshift({ vaga: e.id, ocupada: leitura, momento: agora });
-      if (eventos.length > 100) eventos.pop();
-      renderEventos();
     }
   });
 }
@@ -313,13 +309,6 @@ function renderPainel() {
   }).join("");
 }
 
-function renderEventos() {
-  if (!eventos.length) { $("eventos").innerHTML = '<li class="ajuda">Nenhuma movimentação ainda.</li>'; return; }
-  $("eventos").innerHTML = eventos.map((e) => `
-    <li><span><strong>${e.vaga}</strong><span class="tag ${e.ocupada ? "entrada" : "saida"}">${e.ocupada ? "entrada" : "saída"}</span></span>
-    <span class="hora">${hora(e.momento)}</span></li>`).join("");
-}
-
 function alerta(txt) { $("alerta").textContent = txt || ""; $("alerta").hidden = !txt; }
 
 // ======================= Vagas / fontes =======================
@@ -350,7 +339,6 @@ async function trocarFonte(nova, arquivo) {
   video.removeAttribute("src"); video.srcObject = null;
   alerta("");
   fonte = nova;
-  eventos = []; renderEventos();
 
   if (nova === "webcam") {
     try {
@@ -457,6 +445,18 @@ document.addEventListener("keydown", (e) => {
   e.preventDefault();
   definirPausa(!pausado);
 });
+
+// ---------- Tema dia (claro) / noite (escuro) ----------
+function definirTema(tema) {
+  document.documentElement.dataset.tema = tema;
+  const noite = tema === "noite";
+  $("tema").textContent = noite ? "☀️ Dia" : "🌙 Noite";
+  $("tema").setAttribute("aria-pressed", String(noite));
+  try { localStorage.setItem("estacionamento:tema", tema); } catch (e) {}
+  window.dispatchEvent(new CustomEvent("tema", { detail: { noite } })); // vista3d.js escuta
+}
+$("tema").onclick = () => definirTema(document.documentElement.dataset.tema === "noite" ? "dia" : "noite");
+definirTema(document.documentElement.dataset.tema === "noite" ? "noite" : "dia");
 
 // ---------- Abas (Vista 3D / Câmera) ----------
 function mostrarAba(aba) {

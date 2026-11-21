@@ -4,6 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Estacionamento Monitorado</title>
+  <script>
+    // aplica o tema antes de desenhar a página (evita piscar claro → escuro)
+    try {
+      document.documentElement.dataset.tema = localStorage.getItem("estacionamento:tema") ||
+        (matchMedia("(prefers-color-scheme: dark)").matches ? "noite" : "dia");
+    } catch (e) { document.documentElement.dataset.tema = "dia"; }
+  </script>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -18,6 +25,7 @@
     </select>
     <input type="file" id="arquivo" accept="video/*" hidden>
     <button id="pausar" aria-pressed="false" title="Pausar / continuar (barra de espaço)">⏸ Pausar</button>
+    <button id="tema" aria-pressed="false" title="Alternar entre dia (claro) e noite (escuro)">🌙 Noite</button>
   </div>
 </header>
 
@@ -115,18 +123,12 @@
       <div class="grade" id="grade"></div>
     </div>
 
-    <div class="coluna">
-      <div class="card">
-        <h2>Últimas movimentações</h2>
-        <ul class="eventos" id="eventos"><li class="ajuda">Nenhuma movimentação ainda.</li></ul>
-      </div>
-      <div class="card ajuda">
-        <h2>Como funciona</h2>
-        Cada vaga é um polígono sobre a imagem. Em cada quadro o sistema realça bordas e texturas
-        (limiarização adaptativa) e mede a fração realçada dentro da vaga: carros têm muitas bordas,
-        asfalto vazio quase nenhuma. Acima do limiar, a vaga é ocupada; a mudança só é confirmada após
-        5 quadros seguidos. Todo o processamento acontece no seu navegador, e nenhuma imagem é enviada.
-      </div>
+    <div class="card ajuda">
+      <h2>Como funciona</h2>
+      Cada vaga é um polígono sobre a imagem. Em cada quadro o sistema realça bordas e texturas
+      (limiarização adaptativa) e mede a fração realçada dentro da vaga: carros têm muitas bordas,
+      asfalto vazio quase nenhuma. Acima do limiar, a vaga é ocupada; a mudança só é confirmada após
+      5 quadros seguidos. Todo o processamento acontece no seu navegador, e nenhuma imagem é enviada.
     </div>
   </section>
 </main>
