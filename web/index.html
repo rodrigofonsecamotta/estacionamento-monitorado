@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Estacionamento Monitorado</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1><span id="dot" class="status-dot"></span>Estacionamento Monitorado <small>MVP</small></h1>
+  <div class="barra">
+    <label for="fonte">Fonte:</label>
+    <select id="fonte">
+      <option value="sim">Estacionamento simulado</option>
+      <option value="webcam">Webcam</option>
+      <option value="video">Vídeo do computador…</option>
+    </select>
+    <input type="file" id="arquivo" accept="video/*" hidden>
+  </div>
+</header>
+
+<main>
+  <div id="alerta" class="alerta" hidden></div>
+
+  <section class="kpis">
+    <div class="card kpi livre"><div class="rotulo">Vagas livres</div><div class="valor" id="livres">–</div></div>
+    <div class="card kpi ocupada"><div class="rotulo">Vagas ocupadas</div><div class="valor" id="ocupadas">–</div></div>
+    <div class="card kpi"><div class="rotulo">Total de vagas</div><div class="valor" id="total">–</div></div>
+    <div class="card kpi"><div class="rotulo">Taxa de ocupação</div><div class="valor" id="taxa">–</div></div>
+  </section>
+
+  <section class="layout">
+    <div class="card">
+      <div class="barra">
+        <button id="editar">Editar vagas</button>
+        <span id="barraEdicao" class="barra" hidden>
+          <button id="desfazer">Desfazer ponto</button>
+          <button id="limpar">Remover todas</button>
+          <button id="padrao">Restaurar padrão</button>
+        </span>
+        <label class="slider">Sensibilidade (limiar): <strong id="limiarValor">0.10</strong>
+          <input id="limiar" type="range" min="0.02" max="0.40" step="0.01" value="0.10">
+        </label>
+      </div>
+      <canvas id="tela" width="1280" height="720"></canvas>
+      <p class="ajuda" id="ajudaEdicao" hidden>Clique nos <strong>4 cantos</strong> de cada vaga, contornando-a.
+        Ao completar 4 pontos a vaga é criada. Desenhe um pouco <em>para dentro</em> das faixas pintadas.
+        Clique em “Concluir” para voltar a monitorar.</p>
+      <div class="grade" id="grade"></div>
+    </div>
+
+    <div class="coluna">
+      <div class="card">
+        <h2>Últimas movimentações</h2>
+        <ul class="eventos" id="eventos"><li class="ajuda">Nenhuma movimentação ainda.</li></ul>
+      </div>
+      <div class="card ajuda">
+        <h2>Como funciona</h2>
+        Cada vaga é um polígono sobre a imagem. Em cada quadro o sistema realça bordas e texturas
+        (limiarização adaptativa) e mede a fração realçada dentro da vaga: carros têm muitas bordas,
+        asfalto vazio quase nenhuma. Acima do limiar, a vaga é ocupada; a mudança só é confirmada após
+        5 quadros seguidos. Todo o processamento acontece no seu navegador, e nenhuma imagem é enviada.
+      </div>
+    </div>
+  </section>
+</main>
+
+<video id="video" playsinline muted loop hidden></video>
+<script src="app.js"></script>
+</body>
+</html>

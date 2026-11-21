@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Estacionamento — Painel</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<header>
+  <h1><span id="dot" class="status-dot"></span>Estacionamento Monitorado</h1>
+  <nav><a href="/">Painel</a><a href="/configurar">Configurar vagas</a></nav>
+</header>
+<main>
+  <div id="alerta" class="alerta" hidden></div>
+
+  <section class="kpis">
+    <div class="card kpi livre"><div class="rotulo">Vagas livres</div><div class="valor" id="livres">–</div></div>
+    <div class="card kpi ocupada"><div class="rotulo">Vagas ocupadas</div><div class="valor" id="ocupadas">–</div></div>
+    <div class="card kpi"><div class="rotulo">Total de vagas</div><div class="valor" id="total">–</div></div>
+    <div class="card kpi"><div class="rotulo">Taxa de ocupação</div><div class="valor" id="taxa">–</div></div>
+  </section>
+
+  <section class="layout">
+    <div class="card">
+      <h2>Câmera ao vivo</h2>
+      <img class="video" src="/video" alt="Vídeo do estacionamento com vagas destacadas">
+      <div class="grade" id="grade"></div>
+    </div>
+    <div class="card">
+      <h2>Últimas movimentações</h2>
+      <ul class="eventos" id="eventos"><li class="ajuda">Nenhuma movimentação ainda.</li></ul>
+    </div>
+  </section>
+</main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const hora = (iso) => iso ? iso.slice(11, 19) : "";
+
+async function atualizarStatus() {
+  try {
+    const s = await (await fetch("/api/status")).json();
+    $("livres").textContent = s.livres;
+    $("ocupadas").textContent = s.ocupadas;
+    $("total").textContent = s.total;
+    $("taxa").textContent = s.total ? Math.round(100 * s.ocupadas / s.total) + "%" : "–";
+    $("dot").classList.toggle("on", s.online);
+
+    const alerta = $("alerta");
+    if (s.erro) { alerta.textContent = s.erro; alerta.hidden = false; }
+    else if (s.total === 0) {
+      alerta.innerHTML = 'Nenhuma vaga cadastrada. <a href="/configurar">Configure as vagas</a>.';
+      alerta.hidden = false;
+    } else alerta.hidden = true;
+
+    $("grade").innerHTML = s.vagas.map((v) => {
+      const cls = v.ocupada === null ? "indefinida" : v.ocupada ? "ocupada" : "livre";
+      const txt = v.ocupada === null ? "…" : v.ocupada ? "ocupada" : "livre";
+      return `<div class="vaga ${cls}" title="desde ${hora(v.desde)}">${v.id}<small>${txt}</small></div>`;
+    }).join("");
+  } catch (e) { $("dot").classList.remove("on"); }
+}
+
+async function atualizarEventos() {
+  try {
+    const evs = await (await fetch("/api/eventos?limite=40")).json();
+    if (!evs.length) return;
+    $("eventos").innerHTML = evs.map((e) => `
+      <li><span><strong>${e.vaga}</strong>
+        <span class="tag ${e.ocupada ? "entrada" : "saida"}">${e.ocupada ? "entrada" : "saída"}</span></span>
+        <span class="hora">${e.momento.replace("T", " ")}</span></li>`).join("");
+  } catch (e) {}
+}
+
+atualizarStatus(); atualizarEventos();
+setInterval(atualizarStatus, 1000);
+setInterval(atualizarEventos, 3000);
+</script>
+</body>
+</html>

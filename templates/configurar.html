@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Estacionamento — Configurar vagas</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<header>
+  <h1>Configurar vagas</h1>
+  <nav><a href="/">Painel</a><a href="/configurar">Configurar vagas</a></nav>
+</header>
+<main>
+  <div id="alerta" class="alerta" hidden></div>
+  <section class="layout">
+    <div class="card">
+      <div class="barra">
+        <label style="margin:0">Próxima vaga:</label>
+        <input id="proximoId" size="6">
+        <button id="desfazer">Desfazer ponto</button>
+        <button id="novaImagem">Atualizar imagem</button>
+      </div>
+      <canvas id="tela" width="1280" height="720"></canvas>
+      <p class="ajuda">Clique nos <strong>4 cantos</strong> de cada vaga (em sequência, contornando-a).
+        Ao completar 4 pontos a vaga é criada. Desenhe o polígono um pouco <em>para dentro</em> das faixas
+        pintadas, para que elas não sejam confundidas com um carro.</p>
+    </div>
+    <div class="card">
+      <h2>Vagas (<span id="qtd">0</span>)</h2>
+      <ul class="lista-vagas" id="lista"></ul>
+
+      <label for="fonte">Fonte de vídeo (arquivo, índice da webcam ou URL RTSP)</label>
+      <input id="fonte" style="width:100%">
+      <label for="limiar">Limiar de ocupação (0–1). Menor = mais sensível.</label>
+      <input id="limiar" type="number" step="0.01" min="0.01" max="0.99">
+      <label for="frames">Frames para confirmar mudança</label>
+      <input id="frames" type="number" min="1" step="1">
+
+      <div class="barra" style="margin-top:1rem">
+        <button class="primario" id="salvar">Salvar</button>
+        <button id="limpar">Remover todas</button>
+      </div>
+      <p class="ajuda" id="msg"></p>
+    </div>
+  </section>
+</main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const tela = $("tela"), ctx = tela.getContext("2d");
+const img = new Image();
+let cfg = { vagas: [] }, pontos = [];
+
+function sugerirId() {
+  let n = cfg.vagas.length + 1;
+  const ids = new Set(cfg.vagas.map((v) => v.id));
+  while (ids.has("V" + n)) n++;
+  $("proximoId").value = "V" + n;
+}
+
+function desenhar() {
+  ctx.clearRect(0, 0, tela.width, tela.height);
+  if (img.complete && img.naturalWidth) ctx.drawImage(img, 0, 0);
+  const esp = Math.max(2, tela.width / 500);
+  ctx.lineWidth = esp;
+  ctx.font = `bold ${Math.round(tela.width / 60)}px system-ui`;
+  for (const v of cfg.vagas) {
+    ctx.beginPath();
+    v.pontos.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
+    ctx.closePath();
+    ctx.fillStyle = "rgba(37,99,235,.25)"; ctx.fill();
+    ctx.strokeStyle = "#2563eb"; ctx.stroke();
+    const cx = v.pontos.reduce((s, p) => s + p[0], 0) / v.pontos.length;
+    const cy = v.pontos.reduce((s, p) => s + p[1], 0) / v.pontos.length;
+    ctx.fillStyle = "#fff"; ctx.textAlign = "center"; ctx.fillText(v.id, cx, cy);
+  }
+  if (pontos.length) {
+    ctx.strokeStyle = "#f59e0b"; ctx.fillStyle = "#f59e0b";
+    ctx.beginPath();
+    pontos.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
+    ctx.stroke();
+    for (const [x, y] of pontos) { ctx.beginPath(); ctx.arc(x, y, esp * 2.5, 0, 7); ctx.fill(); }
+  }
+  $("qtd").textContent = cfg.vagas.length;
+  $("lista").innerHTML = cfg.vagas.map((v, i) =>
+    `<li><span>${v.id}</span><button data-i="${i}">Remover</button></li>`).join("");
+}
+
+function carregarImagem() {
+  img.onload = () => { tela.width = img.naturalWidth; tela.height = img.naturalHeight; desenhar(); };
+  img.onerror = () => mostrarAlerta("Sem imagem da câmera ainda. Verifique a fonte de vídeo e clique em “Atualizar imagem”.");
+  img.src = "/api/frame.jpg?t=" + Date.now();
+}
+
+function mostrarAlerta(txt) { $("alerta").textContent = txt; $("alerta").hidden = !txt; }
+
+tela.addEventListener("click", (e) => {
+  const r = tela.getBoundingClientRect();
+  const x = Math.round((e.clientX - r.left) * tela.width / r.width);
+  const y = Math.round((e.clientY - r.top) * tela.height / r.height);
+  pontos.push([x, y]);
+  if (pontos.length === 4) {
+    const id = $("proximoId").value.trim() || "V" + (cfg.vagas.length + 1);
+    if (cfg.vagas.some((v) => v.id === id)) { mostrarAlerta(`Já existe uma vaga "${id}".`); pontos.pop(); return; }
+    cfg.vagas.push({ id, pontos });
+    pontos = [];
+    mostrarAlerta("");
+    sugerirId();
+  }
+  desenhar();
+});
+
+$("lista").addEventListener("click", (e) => {
+  if (e.target.dataset.i === undefined) return;
+  cfg.vagas.splice(Number(e.target.dataset.i), 1);
+  desenhar();
+});
+$("desfazer").onclick = () => { pontos.pop(); desenhar(); };
+$("novaImagem").onclick = carregarImagem;
+$("limpar").onclick = () => { cfg.vagas = []; pontos = []; sugerirId(); desenhar(); };
+
+$("salvar").onclick = async () => {
+  cfg.fonte = $("fonte").value.trim();
+  cfg.limiar = parseFloat($("limiar").value);
+  cfg.frames_confirmacao = parseInt($("frames").value, 10);
+  const resp = await fetch("/api/config", {
+    method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(cfg),
+  });
+  const dados = await resp.json();
+  if (!resp.ok) { mostrarAlerta(dados.erro); return; }
+  cfg = dados;
+  mostrarAlerta("");
+  $("msg").textContent = "Salvo às " + new Date().toLocaleTimeString() + ". O monitor foi reiniciado com a nova configuração.";
+  setTimeout(carregarImagem, 1500);
+};
+
+(async () => {
+  cfg = await (await fetch("/api/config")).json();
+  $("fonte").value = cfg.fonte;
+  $("limiar").value = cfg.limiar;
+  $("frames").value = cfg.frames_confirmacao;
+  sugerirId();
+  carregarImagem();
+})();
+</script>
+</body>
+</html>
