@@ -81,7 +81,7 @@ function vagasPadraoSim() {
   }));
 }
 
-const INTERVALO_MUDANCA_MS = 30000; // uma vaga muda (carro entra ou sai) a cada 30 s
+const INTERVALO_MUDANCA_MS = 5000; // uma vaga muda (carro entra ou sai) a cada 5 s
 let proximaMudanca = 0;
 
 function iniciarSim() {
