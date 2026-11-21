@@ -17,6 +17,7 @@
       <option value="video">Vídeo do computador…</option>
     </select>
     <input type="file" id="arquivo" accept="video/*" hidden>
+    <button id="pausar" aria-pressed="false" title="Pausar / continuar (barra de espaço)">⏸ Pausar</button>
   </div>
 </header>
 
@@ -41,6 +42,7 @@
         <div id="vista3d"></div>
         <div class="placar3d"><span id="placar3d">–</span> vagas livres</div>
         <div class="dica3d">Arraste para girar · role para aproximar · botão direito para mover</div>
+        <div id="pausa3d" class="pausa3d" hidden>⏸ Pausado</div>
         <div id="erro3d" class="erro3d" hidden></div>
       </div>
 

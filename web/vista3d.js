@@ -49,9 +49,9 @@ controles.dampingFactor = 0.08;
 controles.maxPolarAngle = Math.PI / 2.2;
 controles.minDistance = 3;
 controles.maxDistance = 35;
-controles.autoRotate = true;
 controles.autoRotateSpeed = 0.35;
-controles.addEventListener("start", () => (controles.autoRotate = false));
+let girarSozinho = true; // desliga quando o usuário mexe na câmera
+controles.addEventListener("start", () => (girarSozinho = false));
 
 cena.add(new THREE.HemisphereLight(0xbcd4ff, 0x20242c, 0.9));
 const sol = new THREE.DirectionalLight(0xfff4e0, 2.2);
@@ -358,6 +358,8 @@ function quadro() {
 
   const livres = api.estados.filter((e) => e.ocupada === false).length;
   document.getElementById("placar3d").textContent = `${livres} / ${api.vagas.length}`;
+  document.getElementById("pausa3d").hidden = !api.pausado;
+  controles.autoRotate = girarSozinho && !api.pausado;
 
   if (host.offsetParent === null) return; // aba oculta: não renderiza
   controles.update();

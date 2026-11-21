@@ -23,6 +23,13 @@ let eventos = [];
 let streamWebcam = null;
 let ultimoPainel = 0;
 
+// Pausa: congela imagem, detecção e o relógio da simulação
+let pausado = false;
+let pausaInicio = 0;
+let pausaTotal = 0;
+const congelado = document.createElement("canvas");
+const relogio = () => (pausado ? pausaInicio : performance.now()) - pausaTotal;
+
 // ======================= Simulação =======================
 const SIM = { W: 1280, H: 720, LARG: 140, X0: 80, FILEIRAS: [[110, 320], [400, 610]], POR: 8, MP: 12, MC: 20 };
 const CORES = [[180, 40, 40], [30, 60, 180], [30, 30, 30], [200, 200, 200], [40, 140, 40], [220, 160, 20]];
@@ -77,7 +84,7 @@ function vagasPadraoSim() {
 function iniciarSim() {
   fundoSim = fundoSim || criarFundoSim();
   if (carrosSim.length) return;
-  const agora = performance.now();
+  const agora = relogio();
   for (const r of retangulosSim()) {
     const ocupado = Math.random() < 0.5;
     carrosSim.push({ ...r, ocupado, cor: CORES[(Math.random() * CORES.length) | 0], prox: agora + rnd(2000, 15000) });
@@ -101,7 +108,7 @@ function desenharCarro(g, x1, y1, x2, y2, cor) {
 }
 
 function desenharSim() {
-  const agora = performance.now();
+  const agora = relogio();
   ctx.drawImage(fundoSim, 0, 0);
   for (const c of carrosSim) {
     if (agora >= c.prox) {
@@ -276,6 +283,14 @@ function desenharOverlay() {
     ctx.fillStyle = "#fff"; ctx.textAlign = "left";
     ctx.fillText(`Livres: ${livres} / ${vagas.length}`, 10, 20 * Math.max(esc, 0.6));
   }
+
+  if (pausado) {
+    const s = Math.max(esc, 0.6);
+    ctx.fillStyle = "rgba(245,158,11,.9)";
+    ctx.fillRect(tela.width - 170 * s, 0, 170 * s, 40 * s);
+    ctx.fillStyle = "#111"; ctx.textAlign = "center";
+    ctx.fillText("⏸ PAUSADO", tela.width - 85 * s, 20 * s);
+  }
 }
 
 const hora = (d) => d.toLocaleTimeString("pt-BR");
@@ -326,6 +341,7 @@ function pararWebcam() {
 }
 
 async function trocarFonte(nova, arquivo) {
+  if (pausado) definirPausa(false);
   pararWebcam();
   video.pause();
   video.removeAttribute("src"); video.srcObject = null;
@@ -374,8 +390,13 @@ function quadro() {
   const t0 = performance.now();
   let online = false;
   try {
-    online = obterQuadro();
-    if (online && vagas.length && !editando) {
+    if (pausado) {
+      ctx.drawImage(congelado, 0, 0); // mesma imagem; overlay redesenhado por cima
+      online = true;
+    } else {
+      online = obterQuadro();
+    }
+    if (online && !pausado && vagas.length && !editando) {
       const w = tela.width, h = tela.height;
       if (formato !== `${w}x${h}`) prepararMascaras(w, h);
       processar(binarizar(ctx.getImageData(0, 0, w, h).data, w, h));
@@ -386,7 +407,8 @@ function quadro() {
     console.error(e);
     alerta("Erro ao processar o vídeo: " + e.message);
   }
-  $("dot").classList.toggle("on", online);
+  $("dot").classList.toggle("on", online && !pausado);
+  $("dot").classList.toggle("pausa", pausado);
   setTimeout(quadro, Math.max(0, CFG.intervaloMs - (performance.now() - t0)));
 }
 
@@ -405,6 +427,34 @@ $("limiar").addEventListener("input", (e) => {
   $("limiarValor").textContent = CFG.limiar.toFixed(2);
 });
 
+// ---------- Pausa ----------
+function definirPausa(ativo) {
+  if (ativo === pausado) return;
+  if (ativo) {
+    pausaInicio = performance.now();
+    pausado = true;
+    if (fonte === "video") video.pause();
+    obterQuadro(); // quadro limpo (sem overlay), com o relógio já congelado
+    congelado.width = tela.width; congelado.height = tela.height;
+    congelado.getContext("2d").drawImage(tela, 0, 0);
+  } else {
+    pausaTotal += performance.now() - pausaInicio;
+    pausado = false;
+    if (fonte === "video") video.play().catch(() => {});
+  }
+  const b = $("pausar");
+  b.textContent = pausado ? "▶ Continuar" : "⏸ Pausar";
+  b.classList.toggle("ativo", pausado);
+  b.setAttribute("aria-pressed", String(pausado));
+}
+$("pausar").onclick = () => definirPausa(!pausado);
+document.addEventListener("keydown", (e) => {
+  if (e.code !== "Space" || e.repeat) return;
+  if (e.target.closest("input, select, textarea, button")) return; // não interfere em controles
+  e.preventDefault();
+  definirPausa(!pausado);
+});
+
 // ---------- Abas (Vista 3D / Câmera) ----------
 function mostrarAba(aba) {
   document.querySelectorAll(".aba").forEach((b) => b.classList.toggle("ativa", b.dataset.aba === aba));
@@ -415,7 +465,7 @@ document.querySelectorAll(".aba").forEach((b) => (b.onclick = () => mostrarAba(b
 
 // Estado lido pela vista 3D (vista3d.js) a cada quadro
 window.estacionamento = {
-  estado: () => ({ vagas, estados, largura: tela.width, altura: tela.height, fonte }),
+  estado: () => ({ vagas, estados, largura: tela.width, altura: tela.height, fonte, pausado }),
   corDoCarro: (id) => {
     if (fonte !== "sim") return null;
     const c = carrosSim.find((c) => c.id === id);
