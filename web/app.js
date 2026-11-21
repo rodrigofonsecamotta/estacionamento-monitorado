@@ -10,7 +10,7 @@ const ctx = tela.getContext("2d", { willReadFrequently: true });
 const video = $("video");
 
 const CFG = { limiar: 0.10, framesConfirmacao: 5, C: 12, raioMedia: 12, intervaloMs: 66 };
-const CHAVE = "estacionamento:v1:";
+const CHAVE = "estacionamento:v2:"; // v2: layout da simulação com corredor mais largo
 
 let fonte = "sim";
 let vagas = [];      // [{id, pontos:[[x,y],...]}]
@@ -31,7 +31,7 @@ const congelado = document.createElement("canvas");
 const relogio = () => (pausado ? pausaInicio : performance.now()) - pausaTotal;
 
 // ======================= Simulação =======================
-const SIM = { W: 1280, H: 720, LARG: 140, X0: 80, FILEIRAS: [[110, 320], [400, 610]], POR: 8, MP: 12, MC: 20 };
+const SIM = { W: 1280, H: 720, LARG: 140, X0: 80, FILEIRAS: [[50, 260], [460, 670]], POR: 8, MP: 12, MC: 20 };
 const CORES = [[180, 40, 40], [30, 60, 180], [30, 30, 30], [200, 200, 200], [40, 140, 40], [220, 160, 20]];
 const rnd = (a, b) => a + Math.random() * (b - a);
 const rgb = (c) => `rgb(${c[0]},${c[1]},${c[2]})`;
