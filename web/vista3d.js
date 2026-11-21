@@ -634,7 +634,9 @@ function construirCidade(cxh, czh, entradas, rand) {
       const pw = (ix1 - ix0) / nx, pd = (iz1 - iz0) / nz;
       const bw = pw - 0.25 - rand() * 0.6, bd = pd - 0.25 - rand() * 0.6;
       const alto = rand() < 0.12 ? 1.9 : 1;
-      const h = (2.4 + rand() * 6 + Math.min(dist / 6, 6)) * alto;
+      let h = (2.4 + rand() * 6 + Math.min(dist / 6, 6)) * alto;
+      // quarteirões colados ao estacionamento: prédios baixos para não tampar a vista
+      if (Math.abs(a - ANEIS) <= 1 && Math.abs(b - ANEIS) <= 1) h = Math.min(h, 1.2 + (h % 1.2));
       const p = criarPredio(bw, bd, h, rand);
       p.position.set(ix0 + pw * (i + 0.5), 0, iz0 + pd * (j + 0.5));
       grupoCidade.add(p);
