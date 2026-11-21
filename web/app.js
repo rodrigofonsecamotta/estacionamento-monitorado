@@ -405,7 +405,26 @@ $("limiar").addEventListener("input", (e) => {
   $("limiarValor").textContent = CFG.limiar.toFixed(2);
 });
 
+// ---------- Abas (Vista 3D / Câmera) ----------
+function mostrarAba(aba) {
+  document.querySelectorAll(".aba").forEach((b) => b.classList.toggle("ativa", b.dataset.aba === aba));
+  $("painel3d").hidden = aba !== "3d";
+  $("painelCamera").hidden = aba !== "camera";
+}
+document.querySelectorAll(".aba").forEach((b) => (b.onclick = () => mostrarAba(b.dataset.aba)));
+
+// Estado lido pela vista 3D (vista3d.js) a cada quadro
+window.estacionamento = {
+  estado: () => ({ vagas, estados, largura: tela.width, altura: tela.height, fonte }),
+  corDoCarro: (id) => {
+    if (fonte !== "sim") return null;
+    const c = carrosSim.find((c) => c.id === id);
+    return c ? c.cor : null;
+  },
+};
+
 function alternarEdicao(ativo) {
+  if (ativo) mostrarAba("camera");
   editando = ativo;
   pontos = [];
   $("editar").textContent = ativo ? "Concluir" : "Editar vagas";

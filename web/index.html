@@ -32,6 +32,19 @@
 
   <section class="layout">
     <div class="card">
+      <div class="abas" role="tablist">
+        <button class="aba ativa" data-aba="3d" role="tab">Vista 3D</button>
+        <button class="aba" data-aba="camera" role="tab">Câmera + detecção</button>
+      </div>
+
+      <div id="painel3d" class="palco">
+        <div id="vista3d"></div>
+        <div class="placar3d"><span id="placar3d">–</span> vagas livres</div>
+        <div class="dica3d">Arraste para girar · role para aproximar · botão direito para mover</div>
+        <div id="erro3d" class="erro3d" hidden></div>
+      </div>
+
+      <div id="painelCamera" hidden>
       <div class="barra">
         <button id="editar">Editar vagas</button>
         <span id="barraEdicao" class="barra" hidden>
@@ -47,6 +60,7 @@
       <p class="ajuda" id="ajudaEdicao" hidden>Clique nos <strong>4 cantos</strong> de cada vaga, contornando-a.
         Ao completar 4 pontos a vaga é criada. Desenhe um pouco <em>para dentro</em> das faixas pintadas.
         Clique em “Concluir” para voltar a monitorar.</p>
+      </div>
       <div class="grade" id="grade"></div>
     </div>
 
@@ -67,6 +81,13 @@
 </main>
 
 <video id="video" playsinline muted loop hidden></video>
+<script type="importmap">
+{ "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
 <script src="app.js"></script>
+<script type="module" src="vista3d.js"></script>
 </body>
 </html>
